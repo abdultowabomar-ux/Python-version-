@@ -1,11 +1,7 @@
-name: Android Build (Direct Install)
+name: Android Build (Direct Fix)
 
 on:
   push:
-    branches:
-      - master
-      - main
-  pull_request:
     branches:
       - master
       - main
@@ -30,11 +26,11 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Install Python Dependencies (Direct)
+    - name: Install Python Dependencies
       run: |
         python -m pip install --upgrade pip
-        # هنا ثبتنا المكتبات مباشرة بدل الاعتماد على ملف خارجي
-        pip install flet==0.22.1 requests 
+        # تثبيت flet و requests مباشرة
+        pip install flet==0.22.1 requests
 
     - name: Setup Flutter ${{ env.FLUTTER_VERSION }}
       uses: subosito/flutter-action@v2
@@ -49,16 +45,14 @@ jobs:
 
     - name: Flet Build APK
       run: |
-        # قبول التراخيص لضمان استمرار البناء
+        # قبول التراخيص
         yes | sdkmanager --licenses || true
         flutter config --no-analytics
-        # تأكد إن ملفك الأساسي اسمه main.py في المستودع
-        flet build apk --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
+        # التعديل الجوهري: استخدام python -m flet لضمان التشغيل
+        python -m flet build apk --verbose --build-number=$BUILD_NUMBER --build-version=$BUILD_VERSION
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4.3.4
       with:
         name: apk-build-artifact
         path: build/apk
-        if-no-files-found: warn
-
